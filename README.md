@@ -20,7 +20,7 @@ Please join this [quick survey](https://forms.gle/eB3sN5Mw76WMpT6w5).
 A family of standalone packages serve Assistant.NET Dynamics needs and being [freely](license) distributed
 at [nuget.org](https://nuget.org). Each of them has own responsibility and solves some specific aspect of the solution.
 
-### assistant.net.dynamics
+### assistant.net.dynamics.*
 
 It's reserved for code usage analysis, runtime and compile-forward optimizations. E.g. Proxies, mappings etc.
 
