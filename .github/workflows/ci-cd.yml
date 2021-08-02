@@ -7,7 +7,7 @@ on:
       - src
       - tests
       - LICENESE
-      - assistant.net.sln
+      - assistant.net.dynamics.sln
 env:
   VERSION: '${{ secrets.MAJOR_MINOR_VERSION }}.${{ github.run_number }}'
 
