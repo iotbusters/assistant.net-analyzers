@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <RootNamespace>Assistant.Net.Dynamics</RootNamespace>
     <AssemblyName>assistant.net.dynamics.proxy.runtime</AssemblyName>
     <LangVersion>9.0</LangVersion>
@@ -9,9 +9,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.10.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="5.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Proxy.Builder\Proxy.Builder.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -26,9 +28,6 @@
   <ItemGroup>
     <None Include="..\..\LICENSE" Link="LICENSE" Pack="true" PackagePath="" />
     <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Proxy.Builder\Proxy.Builder.csproj" />
   </ItemGroup>
 
 </Project>

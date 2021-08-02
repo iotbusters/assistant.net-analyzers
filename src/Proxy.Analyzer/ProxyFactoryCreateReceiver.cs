@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Assistant.Net.Dynamics.Analyzers
+namespace Assistant.Net.Dynamics
 {
     /// <summary>
     ///     IProxyFactory usage analysis visitor.

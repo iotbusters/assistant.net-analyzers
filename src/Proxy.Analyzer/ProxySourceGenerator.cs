@@ -1,7 +1,7 @@
 ﻿using Assistant.Net.Dynamics.Builders;
 using Microsoft.CodeAnalysis;
 
-namespace Assistant.Net.Dynamics.Analyzers
+namespace Assistant.Net.Dynamics
 {
     /// <summary>
     ///     Proxy source code generator.

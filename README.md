@@ -12,7 +12,7 @@ Please join this [quick survey](https://forms.gle/eB3sN5Mw76WMpT6w5).
 
 ## Releases
 
-- [Assistant.Net.Diagnostics Release 0.0.1](https://github.com/iotbusters/assistant.net.diagnostics/releases/tag/0.0.1)
+- [Assistant.Net.Diagnostics Release 0.0.4](https://github.com/iotbusters/assistant.net.diagnostics/releases/tag/0.0.1)
   - Initial version
 
 ## Packages

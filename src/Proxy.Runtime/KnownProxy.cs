@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace Assistant.Net.Dynamics
 {
@@ -18,6 +19,16 @@ namespace Assistant.Net.Dynamics
         ///     Known proxy type implementations.
         /// </summary>
         public static ImmutableDictionary<Type, Type> ProxyTypes => Types.ToImmutableDictionary();
+
+        /// <summary>
+        ///     Registers all proxy type implementations from all referenced assemblies.
+        /// </summary>
+        [ModuleInitializer]
+        internal static void Initialize()
+        {
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+                KnownProxy.RegisterFrom(assembly);
+        }
 
         /// <summary>
         ///     Registers all proxy type implementations from the <paramref name="proxyAssembly"/>.
