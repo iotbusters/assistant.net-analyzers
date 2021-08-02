@@ -24,14 +24,26 @@ at [nuget.org](https://nuget.org). Each of them has own responsibility and solve
 
 It's reserved for code usage analysis, runtime and compile-forward optimizations. E.g. Proxies, mappings etc.
 
-#### assistant.net.dynamics.proxy.abstractions
+#### assistant.net.dynamics.proxy.builder
 
-Abstractions over proxy generation mechanism.
+Proxy source code generation tool.
+
+#### assistant.net.dynamics.proxy.runtime
+
+Proxy generation tool that supports precompiled proxies and runtime proxy generation depending on chosen strategy.
+
+```csharp
+services.AddProxyFactory(o => o
+    .AllowConfiguredOnlyGeneration() // default strategy
+    .Add<Interface>()));
+
+var factory = provider.GetRequiredService<IProxyFactory>();
+var proxy = factory.Create<Interface>()
+    .Intercept(x => x.Method(), (next, methodInfo, args) => "result")
+    .Object;
+var result = proxy.Method(); // "result"
+```
 
 #### assistant.net.dynamics.proxy.analyzer
 
 Analysis based proxy generation tool that supports compile-forward proxy generation according to the usage `factory.Create<Interface>()`.
-
-#### assistant.net.dynamics.proxy.builder
-
-Proxy source code generation tool.

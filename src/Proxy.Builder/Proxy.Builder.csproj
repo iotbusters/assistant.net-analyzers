@@ -17,16 +17,13 @@
     <RepositoryType>github</RepositoryType>
     <PackageTags>dynamic proxy generator</PackageTags>
     <Description>Runtime proxy generation tool.</Description>
-    <RepositoryUrl>https://github.com/iotbusters/assistant.net</RepositoryUrl>
-    <PackageProjectUrl>https://github.com/iotbusters/assistant.net/blob/master/README.md#assistantnetdynamicsproxybuilder</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/iotbusters/assistant.net.dynamics</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/iotbusters/assistant.net.dynamics/blob/master/README.md#assistantnetdynamicsproxybuilder</PackageProjectUrl>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
   <ItemGroup>
     <None Include="..\..\LICENSE" Link="LICENSE" Pack="true" PackagePath="" />
     <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Proxy.Abstractions\Proxy.Abstractions.csproj" />
   </ItemGroup>
 
 </Project>

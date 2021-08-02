@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Assistant.Net.Dynamics.Abstractions;
 
-namespace Assistant.Net.Dynamics.Abstractions
+namespace Assistant.Net.Dynamics
 {
     public static class ProxyExtensions
     {
