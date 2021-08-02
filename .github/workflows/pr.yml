@@ -24,9 +24,9 @@ jobs:
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
           restore-keys: ${{ runner.os }}-nuget-
 
-      - run: dotnet restore assistant.net.dynamics.sln assistant.net.sln -v n
-      - run: dotnet build assistant.net.dynamics.sln assistant.net.sln -c Release --no-restore -v n
-      - run: dotnet test assistant.net.dynamics.sln assistant.net.sln -v n -c Release --no-restore --no-build -l junit -p:CollectCoverage=true -p:CoverletOutputFormat=opencover
+      - run: dotnet restore assistant.net.dynamics.sln -v n
+      - run: dotnet build assistant.net.dynamics.sln -c Release --no-restore -v n
+      - run: dotnet test assistant.net.dynamics.sln -v n -c Release --no-restore --no-build -l junit -p:CollectCoverage=true -p:CoverletOutputFormat=opencover
       - uses: EnricoMi/publish-unit-test-result-action@v1
         with:
           files: |
