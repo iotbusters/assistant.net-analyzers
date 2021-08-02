@@ -1,0 +1,149 @@
+name: CI/CD
+on:
+  push:
+    branches: [master]
+    paths:
+      - .github
+      - src
+      - tests
+      - LICENESE
+      - assistant.net.sln
+env:
+  VERSION: '${{ secrets.MAJOR_MINOR_VERSION }}.${{ github.run_number }}'
+
+jobs:
+  change-detect:
+    runs-on: ubuntu-latest
+    if: github.event.commits[0].id != '' # to avoid failures if no commit push (e.g. rebasing).
+    steps:
+      - uses: actions/checkout@v2.3.4
+        with: { fetch-depth: 100 }
+
+      - name: detect code changes
+        id: change-detected
+        run: |
+          CHANGES=$(git diff --name-only ${{ github.event.commits[0].id }}~1..${{ github.event.after }})
+          echo ::set-output name=ci-changes::echo ::set-output name=ci-changes::$(echo "$CHANGES" | grep -c -E '\.(cs|csproj|json)$')
+          echo ::set-output name=proxy::$(echo "$CHANGES" | grep -c analyzers-src/Dynamics.Proxy.Analyzer/)
+          echo ::set-output name=total::$(echo "$CHANGES" | wc -l)
+    outputs:
+      ci-changes: ${{ steps.change-detected.outputs.ci-changes }}
+      proxy: ${{ steps.change-detected.outputs.proxy }}
+      total: ${{ steps.change-detected.outputs.total }}
+
+  build:
+    runs-on: ubuntu-latest
+    needs: change-detect
+    if: needs.change-detect.outputs.ci-changes != '0'
+    steps:
+      - uses: actions/checkout@v2.3.4
+      - uses: actions/setup-dotnet@v1.7.2
+        with: { dotnet-version: '5.0' }
+
+      - name: restore (prepare)
+        uses: actions/cache@v2.1.5
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: ${{ runner.os }}-nuget-
+
+      - name: restore
+        run: dotnet restore assistant.net.dynamics.sln -v n
+      - name: build
+        run: dotnet build assistant.net.dynamics.sln -p:Version=${{ env.VERSION }} -c Release --no-restore -v n
+      - name: test
+        run: dotnet test assistant.net.dynamics.sln -v n -c Release --no-restore --no-build -l junit -p:CollectCoverage=true -p:CoverletOutputFormat=opencover
+      - name: publish test result
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        with:
+          files: |
+            **/TestResults.xml
+        if: always()
+      - name: publish coverage result
+        uses: codecov/codecov-action@v1.5.0
+        with:
+          files: |
+            **/coverage.opencover.xml
+        if: always()
+      - name: upload result
+        uses: actions/upload-artifact@v2.2.3
+        with:
+          name: ci-analyzers-results
+          path: |
+            **/TestResults.xml
+            **/coverage.opencover.xml
+          retention-days: 60
+        if: always()
+
+      - name: upload binaries (prepare license)
+        run: |
+          mkdir release-binaries
+          cp LICENSE release-binaries
+        if: needs.change-detect.outputs.ci-changes != '0'
+      - name: upload binaries
+        run: cp -r analyzers-src release-binaries/src
+        if: needs.change-detect.outputs.ci-changes != '0'
+      - name: upload binaries (prepare package counter)
+        id: count-changes
+        run: echo ::set-output name=total-package-prepared-count::$(ls release-binaries/src | wc -l)
+      - name: upload binaries
+        uses: actions/upload-artifact@v2.2.3
+        with:
+          name: release-binaries
+          path: |
+            release-binaries/**/*.csproj
+            release-binaries/**/*.dll
+            release-binaries/**/*.pdb
+            release-binaries/**/*.json
+            !release-binaries/**/obj/**/*.dll
+            !release-binaries/**/obj/**/*.pdb
+            release-binaries/LICENSE
+          retention-days: 7
+
+      # it duplicates actions/upload-artifact
+      # todo: remove once actions/download-artifact supports cross workflow artifacts.
+      # https://github.com/actions/toolkit/pull/517
+      - name: upload binaries (workaround)
+        uses: actions/cache@v2.1.5
+        with:
+          path: release-binaries
+          key: ${{ runner.os }}-release-binaries-${{ env.VERSION }}
+
+    outputs:
+      total-package-prepared-count: ${{ steps.count-changes.outputs.total-package-prepared-count }}
+
+  pre-release:
+    runs-on: ubuntu-latest
+    needs: [change-detect, build]
+    # ensure the artifact were created to skip empty releases.
+    if: needs.build.outputs.total-package-prepared-count != '0'
+    steps:
+      - name: create release (ensure binaries)
+        uses: actions/download-artifact@v2.0.9
+        with:
+          name: release-binaries
+
+      - name: create release
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{ env.VERSION }}
+          release_name: Assistant.Net.Dynamics Release ${{ env.VERSION }}
+          prerelease: true
+          draft: true # published event isn't triggered automatically, so release is created as draft to publish manually.
+          body: |
+            Changed files: ${{ needs.change-detect.outputs.total }}
+            Packed packages: ${{ needs.build.outputs.total-package-prepared-count }}
+            <details>
+              <summary>Package changes</summary>
+              <ul>
+                <li>Dynamics.Proxy.Analyzer: ${{ needs.change-detect.outputs.proxy }}</li>
+              </ul>
+            </details>
+            <details>
+              <summary>Commits</summary>
+              <ul>
+                <li>${{ join(github.event.commits.*.message, '</li><li>') }}</li>
+              </ul>
+            </details>
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

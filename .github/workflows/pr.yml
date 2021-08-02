@@ -1,0 +1,41 @@
+name: PR
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - .github
+      - src
+      - tests
+      - LICENESE
+      - assistant.net.dynamics.sln
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2.3.4
+        with: { fetch-depth: 100 }
+      - uses: actions/setup-dotnet@v1.7.2
+        with: { dotnet-version: '5.0' }
+
+      - uses: actions/cache@v2.1.5
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: ${{ runner.os }}-nuget-
+
+      - run: dotnet restore assistant.net.dynamics.sln assistant.net.sln -v n
+      - run: dotnet build assistant.net.dynamics.sln assistant.net.sln -c Release --no-restore -v n
+      - run: dotnet test assistant.net.dynamics.sln assistant.net.sln -v n -c Release --no-restore --no-build -l junit -p:CollectCoverage=true -p:CoverletOutputFormat=opencover
+      - uses: EnricoMi/publish-unit-test-result-action@v1
+        with:
+          files: |
+            **/TestResults.xml
+        if: always()
+      - uses: actions/upload-artifact@v2.2.3
+        with:
+          name: ci-analyzers-results
+          path: |
+            **/TestResults.xml
+          retention-days: 60
+        if: always()

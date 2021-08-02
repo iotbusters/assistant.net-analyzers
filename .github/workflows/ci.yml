@@ -1,0 +1,58 @@
+name: CI
+on:
+  push:
+    branches: [develop]
+    paths:
+      - .github
+      - src
+      - tests
+      - LICENESE
+      - assistant.net.dynamics.sln
+
+jobs:
+  change-detect:
+    runs-on: ubuntu-latest
+    if: github.event.commits[0].id != '' # to avoid failures if no commit push (e.g. rebasing).
+    steps:
+      - uses: actions/checkout@v2.3.4
+        with: { fetch-depth: 100 }
+
+      - name: change-detected
+        id: change-detected
+        run: |
+          CHANGES=$(git diff --name-only ${{ github.event.commits[0].id }}~1..${{ github.event.after }})
+          echo ::set-output name=ci-changes::$(echo "$CHANGES" | grep -c -E '\.(cs|csproj|json)$')
+    outputs:
+      ci-changes: ${{ steps.change-detected.outputs.ci-changes }}
+
+  build:
+    runs-on: ubuntu-latest
+    needs: change-detect
+    steps:
+      - uses: actions/checkout@v2.3.4
+        with: { fetch-depth: 100 }
+      - uses: actions/setup-dotnet@v1.7.2
+        with: { dotnet-version: '5.0' }
+
+      - uses: actions/cache@v2.1.5
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: ${{ runner.os }}-nuget-
+
+      - run: dotnet restore assistant.net.dynamics.sln -v n
+      - run: dotnet build assistant.net.dynamics.sln -c Release --no-restore -v n
+      - run: dotnet test assistant.net.dynamics.sln -v n -c Release --no-restore --no-build -l junit -p:CollectCoverage=true -p:CoverletOutputFormat=opencover
+      - uses: EnricoMi/publish-unit-test-result-action@v1
+        with:
+          files: |
+            **/TestResults.xml
+        if: always()
+      - uses: actions/upload-artifact@v2.2.3
+        with:
+          name: ci-analyzers-results
+          path: |
+            **/TestResults.xml
+          retention-days: 60
+        if: always()
+    if: needs.change-detect.outputs.ci-changes != '0'
