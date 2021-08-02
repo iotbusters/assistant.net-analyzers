@@ -24,11 +24,15 @@ jobs:
         run: |
           CHANGES=$(git diff --name-only ${{ github.event.commits[0].id }}~1..${{ github.event.after }})
           echo ::set-output name=ci-changes::echo ::set-output name=ci-changes::$(echo "$CHANGES" | grep -c -E '\.(cs|csproj|json)$')
-          echo ::set-output name=proxy::$(echo "$CHANGES" | grep -c analyzers-src/Dynamics.Proxy.Analyzer/)
+          echo ::set-output name=builder::$(echo "$CHANGES" | grep -c src/Proxy.Builder/)
+          echo ::set-output name=analyzer::$(echo "$CHANGES" | grep -c src/Proxy.Analyzer/)
+          echo ::set-output name=runtime::$(echo "$CHANGES" | grep -c src/Proxy.Runtime/)
           echo ::set-output name=total::$(echo "$CHANGES" | wc -l)
     outputs:
       ci-changes: ${{ steps.change-detected.outputs.ci-changes }}
-      proxy: ${{ steps.change-detected.outputs.proxy }}
+      builder: ${{ steps.change-detected.outputs.builder }}
+      analyzer: ${{ steps.change-detected.outputs.analyzer }}
+      runtime: ${{ steps.change-detected.outputs.runtime }}
       total: ${{ steps.change-detected.outputs.total }}
 
   build:
@@ -68,7 +72,7 @@ jobs:
       - name: upload result
         uses: actions/upload-artifact@v2.2.3
         with:
-          name: ci-analyzers-results
+          name: ci-results
           path: |
             **/TestResults.xml
             **/coverage.opencover.xml
@@ -81,7 +85,7 @@ jobs:
           cp LICENSE release-binaries
         if: needs.change-detect.outputs.ci-changes != '0'
       - name: upload binaries
-        run: cp -r analyzers-src release-binaries/src
+        run: cp -r src release-binaries/src
         if: needs.change-detect.outputs.ci-changes != '0'
       - name: upload binaries (prepare package counter)
         id: count-changes
@@ -136,7 +140,9 @@ jobs:
             <details>
               <summary>Package changes</summary>
               <ul>
-                <li>Dynamics.Proxy.Analyzer: ${{ needs.change-detect.outputs.proxy }}</li>
+                <li>Proxy.Builder: ${{ needs.change-detect.outputs.builder }}</li>
+                <li>Proxy.Analyzer: ${{ needs.change-detect.outputs.analyzer }}</li>
+                <li>Proxy.Runtime: ${{ needs.change-detect.outputs.runtime }}</li>
               </ul>
             </details>
             <details>
