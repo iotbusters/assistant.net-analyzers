@@ -2,12 +2,6 @@ name: PR
 on:
   pull_request:
     branches: [master]
-    paths:
-      - .github
-      - src
-      - tests
-      - LICENESE
-      - assistant.net.dynamics.sln
 
 jobs:
   build:
