@@ -2,6 +2,12 @@ name: CI/CD
 on:
   push:
     branches: [master]
+    paths:
+      - .github/workflows/ci-cd.yml
+      - src/**
+      - tests/**
+      - assistant.net.sln
+      - LICENSE
 env:
   VERSION: '${{ secrets.MAJOR_MINOR_VERSION }}.${{ github.run_number }}'
 

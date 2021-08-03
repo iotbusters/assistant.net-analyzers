@@ -2,6 +2,11 @@ name: CI
 on:
   push:
     branches: [develop]
+    paths:
+      - .github/workflows/ci.yml
+      - src/**
+      - tests/**
+      - assistant.net.sln
 
 jobs:
   change-detect:
