@@ -12,6 +12,9 @@ Please join this [quick survey](https://forms.gle/eB3sN5Mw76WMpT6w5).
 
 ## Releases
 
+- [Assistant.Net.Diagnostics Release 0.0.9](https://github.com/iotbusters/assistant.net.dynamics/releases/tag/0.0.9)
+  - added code docs to package
+
 - [Assistant.Net.Diagnostics Release 0.0.5](https://github.com/iotbusters/assistant.net.dynamics/releases/tag/0.0.5)
   - updated dependencies
   - upgraded target framework of `proxy.runtime` package to 5.0
