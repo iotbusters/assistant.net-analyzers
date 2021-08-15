@@ -4,6 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>Assistant.Net.Dynamics</RootNamespace>
     <AssemblyName>assistant.net.dynamics.proxy.analyzer</AssemblyName>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <DevelopmentDependency>true</DevelopmentDependency>
     <LangVersion>9.0</LangVersion>
     <Nullable>enable</Nullable>
@@ -11,6 +12,10 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="5.0.3">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
