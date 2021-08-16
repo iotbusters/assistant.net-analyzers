@@ -17,6 +17,7 @@ namespace Assistant.Net.Dynamics.Builders
 
         private bool addIndent = true;
 
+        /// <summary />
         public IndentedStringBuilder(SourceBuilder sourceBuilder, int indent)
         {
             this.sourceBuilder = sourceBuilder;
@@ -89,6 +90,7 @@ namespace Assistant.Net.Dynamics.Builders
         /// </summary>
         public IndentedStringBuilder Indent() => new(sourceBuilder, indent + 1);
 
+        /// <inheritdoc/>
         public override string ToString() => Builder.ToString();
     }
 }

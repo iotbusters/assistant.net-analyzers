@@ -16,14 +16,14 @@ namespace Assistant.Net.Dynamics.Abstractions
         /// <summary>
         ///     Resolves configured interception logic for the proxied method.
         /// </summary>
-        protected Func<object?[], object?>? GetImplementation(MethodInfo key)
+        protected Func<object?[], object?> GetImplementation(MethodInfo key, Func<object?[], object?> defaultBehaviour)
         {
             var interceptors = ((IProxy) this).Interceptors;
             if (!interceptors.TryGetValue(key, out var interceptor))
-                return null;
+                return defaultBehaviour;
 
             return interceptor.GetInvocationList().Cast<Func<Func<object?[], object?>, object?[], object?>>().Aggregate(
-                new Func<object?[], object?>(_ => null),
+                defaultBehaviour,
                 (next, current) => args => current(next, args));
         }
 

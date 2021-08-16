@@ -1,14 +1,17 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using Assistant.Net.Dynamics.Abstractions;
+using Assistant.Net.Dynamics.Builders;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Assistant.Net.Dynamics.Abstractions;
-using Assistant.Net.Dynamics.Builders;
 
 namespace Assistant.Net.Dynamics
 {
+    /// <summary>
+    ///     Compilation extensions for proxy generation.
+    /// </summary>
     public static class CompilationExtensions
     {
         /// <summary>
@@ -170,23 +173,24 @@ namespace Assistant.Net.Dynamics
                         cb.AddProperty(
                             property,
                             getter: b => b
-                                .Append("var interceptor = GetImplementation(").AppendLine("this.get", property.Name, ");")
-                                .Append("if (interceptor != null) ")
-                                .Append("return (").Type((INamedTypeSymbol) property.Type).AppendLine(") interceptor(new object[0]);")
-                                .Append("if (", instanceFieldName, " != null) ")
-                                .AppendLine("return ", instanceFieldName, ".", property.Name, ";")
-                                .AppendLine("throw this.", errorFieldName, ";"),
+                                .Append("var interceptor = GetImplementation(")
+                                .Append("this.get", property.Name, ", x =>")
+                                .AddBlock(ib => ib
+                                    .Append("if (this.", instanceFieldName, " == null) ")
+                                    .AppendLine("throw this.", errorFieldName, ";")
+                                    .AppendLine("return this.", instanceFieldName, ".", property.Name, ";"))
+                                .AppendLine(");")
+                                .Append("return (").Type(property.Type).AppendLine(") interceptor(new object[0]);"),
                             setter: b => b
-                                .Append("var interceptor = GetImplementation(").AppendLine("this.set", property.Name, ");")
-                                .AppendLine("if (interceptor != null) ")
+                                .Append("var interceptor = GetImplementation(")
+                                .Append("this.set", property.Name, ", x =>")
                                 .AddBlock(ib => ib
-                                    .AppendLine("interceptor(new object[] {value});")
-                                    .AppendLine("return;"))
-                                .AppendLine("if (", instanceFieldName, " != null)")
-                                .AddBlock(ib => ib
+                                    .Append("if (this.", instanceFieldName, " == null) ")
+                                    .AppendLine("throw this.", errorFieldName, ";")
                                     .AppendLine("this.", instanceFieldName, ".", property.Name, " = value;")
-                                    .AppendLine("return;"))
-                                .AppendLine("throw this.", errorFieldName, ";")
+                                    .AppendLine("return null;"))
+                                .AppendLine(");")
+                                .AppendLine("interceptor(new object[0]);")
                             );
 
                     foreach (var method in proxyTypeMethods)
@@ -202,28 +206,26 @@ namespace Assistant.Net.Dynamics
                                     .Append(")");
                             else
                                 b.Append("this.").MethodName(method);
-                            b.AppendLine(");");
+                            b.Append(", x =>");
 
                             if (method.ReturnsVoid)
-                                b.AppendLine("if (interceptor != null) ")
-                                    .AddBlock(ib => ib
-                                        .Append("interceptor(new object[] {")
-                                        .AppendJoin(", ", argumentNames).AppendLine("});")
-                                        .AppendLine("return;"))
-                                    .AppendLine("if (", instanceFieldName, " != null)")
-                                    .AddBlock(ib => ib
+                                b.AddBlock(ib => ib
+                                        .AppendLine("if (this.", instanceFieldName, " == null)")
+                                        .AppendLine("throw this.", errorFieldName, ";")
                                         .Append("this.", instanceFieldName, ".", method.Name, "(")
-                                        .AppendJoin(", ", argumentNames).AppendLine(");")
-                                        .AppendLine("return;"))
-                                    .AppendLine("throw this.", errorFieldName, ";");
+                                        .AppendJoin(", ", argumentNames).AppendLine(");"))
+                                    .AppendLine(");")
+                                    .Append("interceptor(new object[] {")
+                                    .AppendJoin(", ", argumentNames).AppendLine("});");
                             else
-                                b.Append("if (interceptor != null) ")
+                                b.AddBlock(ib => ib
+                                        .Append("if (this.", instanceFieldName, " == null) ")
+                                        .AppendLine("throw this.", errorFieldName, ";")
+                                        .Append("return this.", instanceFieldName, ".", method.Name, "(")
+                                        .AppendJoin(", ", argumentNames).AppendLine(");"))
+                                    .AppendLine(");")
                                     .Append("return (").Type(method.ReturnType).Append(") interceptor((new object[] {")
-                                    .AppendJoin(", ", argumentNames).AppendLine("}));")
-                                    .Append("if (", instanceFieldName, " != null) ")
-                                    .Append("return this.", instanceFieldName, ".", method.Name, "(")
-                                    .AppendJoin(", ", argumentNames).AppendLine(");")
-                                    .AppendLine("throw this.", errorFieldName, ";");
+                                    .AppendJoin(", ", argumentNames).AppendLine("}));");
                         });
                     }
 
@@ -232,23 +234,23 @@ namespace Assistant.Net.Dynamics
                         cb.AddEvent(
                             @event,
                             addBody: b => b
-                                .AppendLine("var interceptor = GetImplementation(this.add", @event.Name, ");")
-                                .AppendLine("if (interceptor != null) ")
+                                .AppendLine("var interceptor = GetImplementation(this.add", @event.Name, ", x =>")
                                 .AddBlock(ib => ib
-                                    .AppendLine("interceptor(new object[] {value});")
-                                    .AppendLine("return;"))
-                                .Append("if (", instanceFieldName, " != null) ")
-                                .AppendLine("this.", instanceFieldName, ".", @event.Name, " += value;")
-                                .Append("throw this.", errorFieldName, ";"),
+                                    .Append("if (this.", instanceFieldName, " == null) ")
+                                    .AppendLine("throw this.", errorFieldName, ";")
+                                    .AppendLine("this.", instanceFieldName, ".", @event.Name, " += value;")
+                                    .AppendLine("return null;"))
+                                .AppendLine(");")
+                                .AppendLine("interceptor(new object[] {value});"),
                             removeBody: b => b
-                                .AppendLine("var interceptor = GetImplementation(this.add", @event.Name, ");")
-                                .AppendLine("if (interceptor != null) ")
+                                .AppendLine("var interceptor = GetImplementation(this.remove", @event.Name, ", x =>")
                                 .AddBlock(ib => ib
-                                    .AppendLine("interceptor(new object[] {value});")
-                                    .AppendLine("return;"))
-                                .Append("if (", instanceFieldName, " != null) ")
-                                .AppendLine("this.", instanceFieldName, ".", @event.Name, " -= value;")
-                                .AppendLine("throw this.", errorFieldName, ";"));
+                                    .Append("if (this.", instanceFieldName, " == null) ")
+                                    .AppendLine("throw this.", errorFieldName, ";")
+                                    .AppendLine("this.", instanceFieldName, ".", @event.Name, " -= value;")
+                                    .AppendLine("return null;"))
+                                .AppendLine(");")
+                                .AppendLine("interceptor(new object[] {value});"));
                     }
                 });
             });
