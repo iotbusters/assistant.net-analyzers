@@ -12,6 +12,10 @@ Please join this [quick survey](https://forms.gle/eB3sN5Mw76WMpT6w5).
 
 ## Releases
 
+- [Assistant.Net.Diagnostics Release 0.0.11](https://github.com/iotbusters/assistant.net.dynamics/releases/tag/0.0.11)
+  - bug fixes in generated proxy
+  - disabled CS1591 warnings in generated proxy
+
 - [Assistant.Net.Diagnostics Release 0.0.9](https://github.com/iotbusters/assistant.net.dynamics/releases/tag/0.0.9)
   - added code docs to package
 
