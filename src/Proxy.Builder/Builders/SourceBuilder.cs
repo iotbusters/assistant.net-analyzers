@@ -36,10 +36,11 @@ namespace Assistant.Net.Dynamics.Builders
         {
             if (@namespace == null)
                 return this;
-
             builder.AppendLine()
+                .AppendLine("#pragma warning disable 1591")
                 .AppendLine("namespace ", @namespace)
-                .AddBlock(b => body(new SourceBuilder(b)));
+                .AddBlock(b => body(new SourceBuilder(b)))
+                .AppendLine("#pragma warning restore 1591");
             return this;
         }
 
